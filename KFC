@@ -1,17 +1,20 @@
 #!name = 肯德基去广告
-#!desc = 拦截首页营销弹窗与个性化广告；动态广告域名整体拦截可能影响 AI/推荐功能
+#!desc = 删除首页开屏广告，并移除百胜送、大神卡和 AI 点餐底栏项
 #!author = 杏九
 #!loon_version = 3.5.1(978)
 #!date = 2026-10-30
-#!tag = 肯德基,去广告
+#!tag = 肯德基,去广告,底栏
 
 [Rule]
-# 不依赖 MitM：HomePopService 使用 dynamicad.kfc.com.cn/api/app6/pop。
-# 整个 dynamicad 域名也承载首页个性化广告与 AI 相关接口。
+# 拦截首页动态弹窗与个性化广告 API；
 DOMAIN,dynamicad.kfc.com.cn,REJECT
-# App 内含有以下弹窗 JSON 路径模板；按 HTTPS URL 路径过滤需要启用 MitM。
+# 弹窗 JSON 路径拦截需通过 res.kfc.com.cn 的 MitM。
 URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/index\.json(?:\?.*)?$,REJECT
 URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/pop_[^/?]+\.json(?:\?.*)?$,REJECT
+
+[Rewrite]
+# 删除开屏广告，以及百胜送、大神卡、AI 点餐（含未登录版本）底栏配置。
+response if ${url} ~= /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/apphome6\/apphome_[0-9]+_[0-9]{12}\.json(?:\?.*)?$/ && ${response.status} == 200 then response.json.delete(["data.app6_bootStrapAd", "data.app6_tab2", "data.app6_tab3", "data.app6_tab5Ai", "data.app6_tab5AiUnlogin"])
 
 [MitM]
 hostname = res.kfc.com.cn
