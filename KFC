@@ -1,18 +1,17 @@
-#!name = 肯德基广告
-#!desc = 清理启动广告、首页弹窗广告
+#!name = 肯德基去广告
+#!desc = 移除启动广告，移除首页弹窗广告
 #!author = 杏九
 #!loon_version = 3.5.1(978)
 #!date = 2026-10-30
-#!tag = 肯德基,去广告,底栏
+#!tag = 肯德基,去广告
 
 [Rule]
 DOMAIN,dynamicad.kfc.com.cn,REJECT
-# KFC 首页弹窗 JSON。
 URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/(?:index\.json|pop_[^/?]+\.json)(?:\?.*)?$,REJECT
 
 [Script]
 http-request ^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/[^?]+\.json|bootStrap\/rn\/[^?]+\.json|notHomepage\/KFC\/rn\/[^?]+\.json) script-path=https://raw.githubusercontent.com/xingjiu29/KFC/refs/heads/main/kfc_home_request.js,tag=KFC广告底栏缓存绕过,timeout=20
-http-response ^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/[^?]+\.json|bootStrap\/rn\/[^?]+\.json|notHomepage\/KFC\/rn\/[^?]+\.json) script-path=https://raw.githubusercontent.com/xingjiu29/KFC/refs/heads/main/kfc_home_response.js,tag=KFC启动广告底栏清理,requires-body=true,timeout=20
+http-response ^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/[^?]+\.json|bootStrap\/rn\/[^?]+\.json|notHomepage\/KFC\/rn\/[^?]+\.json) script-path=https://raw.githubusercontent.com/xingjiu29/KFC/refs/heads/main/kfc_home_response.js,tag=KFC启动广告底栏处理,requires-body=true,timeout=20
 
 [MitM]
 hostname = res.kfc.com.cn
