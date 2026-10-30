@@ -1,17 +1,17 @@
 #!name = 肯德基去广告
-#!desc = 拦截肯德基首页弹窗与个性化广告请求（基于 6.38.0 IPA 静态分析）
+#!desc = 拦截首页营销弹窗与个性化广告；动态广告域名整体拦截可能影响 AI/推荐功能
 #!author = 杏九
 #!loon_version = 3.5.1(978)
 #!date = 2026-10-30
 #!tag = 肯德基,去广告
 
 [Rule]
-# HomePopService: app6/pop
-URL-REGEX,^https?://dynamicad\.kfc\.com\.cn/api/app6/pop,REJECT
-# Homepage personal ads
-URL-REGEX,^https?://dynamicad\.kfc\.com\.cn/api/homePage/v3/personalAd,REJECT
-# Pop JSON resources
-URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/pop_[^?]+\.json,REJECT
+# 不依赖 MitM：HomePopService 使用 dynamicad.kfc.com.cn/api/app6/pop。
+# 整个 dynamicad 域名也承载首页个性化广告与 AI 相关接口。
+DOMAIN,dynamicad.kfc.com.cn,REJECT
+# App 内含有以下弹窗 JSON 路径模板；按 HTTPS URL 路径过滤需要启用 MitM。
+URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/index\.json(?:\?.*)?$,REJECT
+URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/pop_[^/?]+\.json(?:\?.*)?$,REJECT
 
 [MitM]
-hostname = dynamicad.kfc.com.cn,res.kfc.com.cn
+hostname = res.kfc.com.cn
