@@ -1,60 +1,111 @@
 var req = $request || {};
 var res = $response || {};
 var url = req.url || "";
-var target = /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/apphome6\/apphome_[^/?]+\.json(?:\?.*)?$/i;
 
-if (!target.test(url) || res.status !== 200 || typeof res.body !== "string") {
-  console.log("KFC home response skipped; status=" + String(res.status));
+var isTarget =
+  /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/apphome_[^/?]+\.json|bootStrap\/(?:bootStrap_[^/?]+\.json|rn))(?:\?.*)?$/i.test(
+    url
+  );
+
+function isAdItem(value) {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  var marker =
+    String(value.positionType || "") +
+    " " +
+    String(value.positionId || "") +
+    " " +
+    String(value.ccTag || "");
+
+  return /bootstrap.*ad|app6_bootStrapAd/i.test(marker);
+}
+
+function cleanNode(value, removed) {
+  if (Array.isArray(value)) {
+    return value
+      .filter(function (item) {
+        if (isAdItem(item)) {
+          removed.push("bootstrap-ad-item");
+          return false;
+        }
+        return true;
+      })
+      .map(function (item) {
+        return cleanNode(item, removed);
+      });
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  var output = {};
+
+  Object.keys(value).forEach(function (key) {
+    if (/^app6_tab(?:2|3|5Ai|5AiUnlogin)(?:_harmony)?$/i.test(key)) {
+      removed.push(key);
+      return;
+    }
+
+    if (
+      /^(?:app6_)?(?:active)?bootstrapad$/i.test(key) ||
+      /^newhomepage_.*bootstrapad/i.test(key)
+    ) {
+      removed.push(key);
+      return;
+    }
+
+    output[key] = cleanNode(value[key], removed);
+  });
+
+  return output;
+}
+
+if (!isTarget || res.status !== 200 || typeof res.body !== "string") {
+  console.log(
+    "KFC startup config skipped; status=" +
+      String(res.status) +
+      "; url=" +
+      url
+  );
   $done({});
 } else {
   try {
-    var json = JSON.parse(res.body);
+    var data = JSON.parse(res.body);
+    var removed = [];
+    var cleaned = cleanNode(data, removed);
+    var headers = {};
 
-    if (!json || typeof json !== "object" || !json.data || typeof json.data !== "object") {
-      console.log("KFC home JSON has no data object");
-      $done({});
-    } else {
-      var keys = [
-        "app6_bootStrapAd",
-        "app6_tab2",
-        "app6_tab3",
-        "app6_tab5Ai",
-        "app6_tab5AiUnlogin"
-      ];
-      var removed = [];
+    Object.keys(res.headers || {}).forEach(function (key) {
+      var lower = key.toLowerCase();
 
-      keys.forEach(function (key) {
-        if (Object.prototype.hasOwnProperty.call(json.data, key)) {
-          delete json.data[key];
-          removed.push(key);
-        }
-      });
+      if (
+        lower !== "content-length" &&
+        lower !== "content-encoding" &&
+        lower !== "etag" &&
+        lower !== "last-modified"
+      ) {
+        headers[key] = res.headers[key];
+      }
+    });
 
-      var headers = {};
-      Object.keys(res.headers || {}).forEach(function (key) {
-        var lower = key.toLowerCase();
-        if (
-          lower !== "content-length" &&
-          lower !== "content-encoding" &&
-          lower !== "etag" &&
-          lower !== "last-modified"
-        ) {
-          headers[key] = res.headers[key];
-        }
-      });
+    headers["Content-Type"] = "application/json; charset=utf-8";
+    headers["Cache-Control"] = "no-store";
 
-      headers["Content-Type"] = "application/json; charset=utf-8";
-      headers["Cache-Control"] = "no-store";
+    console.log(
+      "KFC startup config cleaned: " +
+        (removed.length ? removed.join(",") : "no target keys present")
+    );
 
-      console.log("KFC home config cleaned: " + removed.join(","));
-      $done({
-        status: 200,
-        headers: headers,
-        body: JSON.stringify(json)
-      });
-    }
+    $done({
+      status: 200,
+      headers: headers,
+      body: JSON.stringify(cleaned)
+    });
   } catch (e) {
-    console.log("KFC home JSON parse failed: " + String(e));
+    console.log("KFC startup config parse failed: " + String(e));
     $done({});
   }
 }
