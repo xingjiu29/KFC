@@ -1,0 +1,17 @@
+#!name = 肯德基去广告
+#!desc = 拦截肯德基首页弹窗与个性化广告请求（基于 6.38.0 IPA 静态分析）
+#!author = 杏九
+#!loon_version = 3.5.1(978)
+#!date = 2026-10-30
+#!tag = 肯德基,去广告
+
+[Rule]
+# HomePopService: app6/pop
+URL-REGEX,^https?://dynamicad\.kfc\.com\.cn/api/app6/pop,REJECT
+# Homepage personal ads
+URL-REGEX,^https?://dynamicad\.kfc\.com\.cn/api/homePage/v3/personalAd,REJECT
+# Pop JSON resources
+URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/pop_[^?]+\.json,REJECT
+
+[MitM]
+hostname = dynamicad.kfc.com.cn,res.kfc.com.cn
