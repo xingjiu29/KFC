@@ -3,7 +3,7 @@ var url = req.url || "";
 var headers = req.headers || {};
 
 var target =
-  /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/apphome_[^/?]+\.json|bootStrap\/(?:bootStrap_[^/?]+\.json|rn))(?:\?.*)?$/i;
+  /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/[^/?]+\.json|bootStrap\/rn\/[^/?]+\.json|notHomepage\/KFC\/rn\/[^/?]+\.json)(?:\?.*)?$/i;
 
 if (!target.test(url)) {
   $done({});
@@ -26,13 +26,10 @@ if (!target.test(url)) {
   cleanHeaders["Cache-Control"] = "no-cache, no-store";
   cleanHeaders["Pragma"] = "no-cache";
 
-  // apphome/bootstrap JSON 使用唯一查询参数，避免沿用 304 缓存。
-  if (/\.json(?:\?.*)?$/i.test(url)) {
-    var separator = url.indexOf("?") >= 0 ? "&" : "?";
-    url += separator + "_loon_kfc_filter=" + Date.now();
-  }
+  var separator = url.indexOf("?") >= 0 ? "&" : "?";
+  url += separator + "_loon_kfc_filter=" + Date.now();
 
-  console.log("KFC startup config request: " + url);
+  console.log("KFC ad/tab request cache bypass: " + url);
   $done({
     url: url,
     headers: cleanHeaders
