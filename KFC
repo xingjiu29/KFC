@@ -1,12 +1,11 @@
-#!name = 肯德基广告清理与底栏精简 JS v8
-#!desc = 根据实测 HAR 清理启动广告、首页弹窗与百胜出品/大神卡/AI点餐底栏入口
-#!author = Codex
+#!name = 肯德基广告
+#!desc = 清理启动广告、首页弹窗广告
+#!author = 杏九
 #!loon_version = 3.5.1(978)
 #!date = 2026-10-30
 #!tag = 肯德基,去广告,底栏
 
 [Rule]
-# IPA 与 HAR 确认的动态首页弹窗 API。
 DOMAIN,dynamicad.kfc.com.cn,REJECT
 # KFC 首页弹窗 JSON。
 URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/(?:index\.json|pop_[^/?]+\.json)(?:\?.*)?$,REJECT
