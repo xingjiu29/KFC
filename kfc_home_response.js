@@ -2,8 +2,8 @@ var req = $request || {};
 var res = $response || {};
 var url = req.url || "";
 
-var isTarget =
-  /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/apphome_[^/?]+\.json|bootStrap\/(?:bootStrap_[^/?]+\.json|rn))(?:\?.*)?$/i.test(
+var target =
+  /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/(?:apphome6\/[^/?]+\.json|bootStrap\/rn\/[^/?]+\.json|notHomepage\/KFC\/rn\/[^/?]+\.json)(?:\?.*)?$/i.test(
     url
   );
 
@@ -30,6 +30,7 @@ function cleanNode(value, removed) {
           removed.push("bootstrap-ad-item");
           return false;
         }
+
         return true;
       })
       .map(function (item) {
@@ -44,7 +45,7 @@ function cleanNode(value, removed) {
   var output = {};
 
   Object.keys(value).forEach(function (key) {
-    if (/^app6_tab(?:2|3|5Ai|5AiUnlogin)(?:_harmony)?$/i.test(key)) {
+    if (/^(?:app6_)?tab(?:2|3|5Ai|5AiUnlogin)(?:_harmony)?$/i.test(key)) {
       removed.push(key);
       return;
     }
@@ -63,9 +64,9 @@ function cleanNode(value, removed) {
   return output;
 }
 
-if (!isTarget || res.status !== 200 || typeof res.body !== "string") {
+if (!target || res.status !== 200 || typeof res.body !== "string") {
   console.log(
-    "KFC startup config skipped; status=" +
+    "KFC ad/tab response skipped; status=" +
       String(res.status) +
       "; url=" +
       url
@@ -73,9 +74,9 @@ if (!isTarget || res.status !== 200 || typeof res.body !== "string") {
   $done({});
 } else {
   try {
-    var data = JSON.parse(res.body);
+    var json = JSON.parse(res.body);
     var removed = [];
-    var cleaned = cleanNode(data, removed);
+    var cleaned = cleanNode(json, removed);
     var headers = {};
 
     Object.keys(res.headers || {}).forEach(function (key) {
@@ -95,7 +96,7 @@ if (!isTarget || res.status !== 200 || typeof res.body !== "string") {
     headers["Cache-Control"] = "no-store";
 
     console.log(
-      "KFC startup config cleaned: " +
+      "KFC ad/tab JSON cleaned: " +
         (removed.length ? removed.join(",") : "no target keys present")
     );
 
@@ -105,7 +106,7 @@ if (!isTarget || res.status !== 200 || typeof res.body !== "string") {
       body: JSON.stringify(cleaned)
     });
   } catch (e) {
-    console.log("KFC startup config parse failed: " + String(e));
+    console.log("KFC ad/tab JSON parse failed: " + String(e));
     $done({});
   }
 }
