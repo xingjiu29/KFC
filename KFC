@@ -1,21 +1,18 @@
 #!name = 肯德基去广告
-#!desc = 强制获取首页配置后删除开屏广告，并精简底栏
+#!desc = 用 JavaScript 绕过首页配置缓存并删除开屏广告、百胜出品、大神卡和 AI 点餐入口
 #!author = 杏九
 #!loon_version = 3.5.1(978)
 #!date = 2026-10-30
 #!tag = 肯德基,去广告,底栏
 
 [Rule]
-# 拦截首页动态弹窗与个性化广告 API
 DOMAIN,dynamicad.kfc.com.cn,REJECT
 URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/index\.json(?:\?.*)?$,REJECT
 URL-REGEX,^https?://res\.kfc\.com\.cn/CRM/kfcad/pop/pop_[^/?]+\.json(?:\?.*)?$,REJECT
 
-[Rewrite]
-# 移除缓存校验头，避免服务器返回 304，确保获得可改写的完整 JSON
-request if ${url} ~= /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/apphome6\/apphome_[^/?]+\.json(?:\?.*)?$/ then request.header.del(["If-Modified-Since", "If-None-Match"])
-# 删除开屏广告，以及百胜送、大神卡、AI 点餐（含未登录版本）底栏配置
-response if ${url} ~= /^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/apphome6\/apphome_[^/?]+\.json(?:\?.*)?$/ && ${response.status} == 200 then response.json.delete(["data.app6_bootStrapAd", "data.app6_tab2", "data.app6_tab3", "data.app6_tab5Ai", "data.app6_tab5AiUnlogin"])
+[Script]
+http-request ^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/apphome6\/apphome_[^?]+\.json script-path=https://raw.githubusercontent.com/xingjiu29/KFC/refs/heads/main/kfc_home_request.js,tag=KFC首页缓存绕过,timeout=20
+http-response ^https:\/\/res\.kfc\.com\.cn\/CRM\/kfcad\/apphome6\/apphome_[^?]+\.json script-path=https://raw.githubusercontent.com/xingjiu29/KFC/refs/heads/main/kfc_home_response.js,tag=KFC首页广告底栏清理,requires-body=true,timeout=20
 
 [MitM]
 hostname = res.kfc.com.cn
