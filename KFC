@@ -4,6 +4,7 @@
 #!loon_version = 3.5.1(978)
 #!date = 2026-10-30
 #!tag = 肯德基,去广告
+#!icon = https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/87/77/8f/87778fce-2a57-ff69-d563-3944de03540b/Default-0-0-1x_U007epad-0-1-85-220.png/512x512bb.jpg
 
 [Rule]
 DOMAIN,dynamicad.kfc.com.cn,REJECT
